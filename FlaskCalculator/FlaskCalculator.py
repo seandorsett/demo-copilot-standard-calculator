@@ -15,13 +15,17 @@ def calculate():
         data = request.get_json()
         operation = data.get('operation')
 
-        if operation not in ['add', 'subtract', 'multiply', 'divide']:
+        if operation not in ['add', 'subtract', 'multiply', 'divide', 'cos']:
             return jsonify({'error': 'Invalid operation'}), 400
 
         # Validate required numbers
         try:
             num1 = float(data.get('num1'))
-            num2 = float(data.get('num2'))
+            # num2 is optional for single-argument operations like cos
+            if operation in ['cos']:
+                num2 = None
+            else:
+                num2 = float(data.get('num2'))
         except (TypeError, ValueError):
             return jsonify({'error': 'Invalid input'}), 400
 
@@ -35,6 +39,8 @@ def calculate():
             if num2 == 0:
                 return jsonify({'error': 'Cannot divide by zero'}), 400
             result = num1 / num2
+        elif operation == 'cos':
+            result = math.cos(num1)
         else:
             return jsonify({'error': 'Invalid operation'}), 400
 
