@@ -151,6 +151,7 @@
             <button class="operation-btn" onclick="calculate('subtract')">−</button>
             <button class="operation-btn" onclick="calculate('multiply')">×</button>
             <button class="operation-btn" onclick="calculate('divide')">÷</button>
+            <button class="operation-btn" onclick="calculate('cos')">cos</button>
         </div>
         
         <div class="result" id="result">Result will appear here</div>
@@ -162,7 +163,15 @@
             const num2 = document.getElementById('num2').value;
             const resultDiv = document.getElementById('result');
 
-            if (!num1 || !num2) {
+            // Single-argument operations (like cos) only require num1
+            const singleArgOps = ['cos'];
+            
+            if (!num1) {
+                resultDiv.innerHTML = '<span class="error">Please enter the first number</span>';
+                return;
+            }
+            
+            if (!singleArgOps.includes(operation) && !num2) {
                 resultDiv.innerHTML = '<span class="error">Please enter both numbers</span>';
                 return;
             }
@@ -170,9 +179,13 @@
             try {
                 const requestBody = {
                     num1: parseFloat(num1),
-                    num2: parseFloat(num2),
                     operation: operation
                 };
+                
+                // Only add num2 if it's not a single-argument operation
+                if (!singleArgOps.includes(operation)) {
+                    requestBody.num2 = parseFloat(num2);
+                }
 
                 const response = await fetch('/calculate', {
                     method: 'POST',
