@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .calculator {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+   
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+      
+        label {
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+        }
+      
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+      
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+   
+        .operations {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .operation-btn {
+            padding: 15px 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        /* Removed single-arg styling for scientific ops */
+  
+        .operation-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+      
+        .operation-btn:active {
+            transform: translateY(0);
+        }
+    
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            min-height: 30px;
+            word-wrap: break-word;
+        }
+        
+        .error {
+            color: #e74c3c;
+        }
+        
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .operations {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>🧮 Standard Calculator</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="num1">First Number:</label>
+                <input type="number" id="num1" step="any" placeholder="Enter number">
+            </div>
+            
+            <div class="input-group">
+                <label for="num2">Second Number (if needed):</label>
+                <input type="number" id="num2" step="any" placeholder="Optional">
+            </div>
+        </div>
+        
+        <div class="section-title">Operations</div>
+        <div class="operations">
+            <button class="operation-btn" onclick="calculate('add')">+</button>
+            <button class="operation-btn" onclick="calculate('subtract')">−</button>
+            <button class="operation-btn" onclick="calculate('multiply')">×</button>
+            <button class="operation-btn" onclick="calculate('divide')">÷</button>
+        </div>
+        
+        <div class="result" id="result">Result will appear here</div>
+    </div>
+    
+    <script>
+        async function calculate(operation) {
+            const num1 = document.getElementById('num1').value;
+            const num2 = document.getElementById('num2').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!num1 || !num2) {
+                resultDiv.innerHTML = '<span class="error">Please enter both numbers</span>';
+                return;
+            }
+
+            try {
+                const requestBody = {
+                    num1: parseFloat(num1),
+                    num2: parseFloat(num2),
+                    operation: operation
+                };
+
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const formattedResult = typeof data.result === 'number'
+                        ? (Number.isInteger(data.result) ? data.result : data.result.toFixed(8).replace(/\.?0+$/, ''))
+                        : data.result;
+                    resultDiv.innerHTML = `Result: ${formattedResult}`;
+                    resultDiv.className = 'result';
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="error">An error occurred</span>';
+            }
+        }
+
+        document.getElementById('num1').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculate('add');
+        });
+        document.getElementById('num2').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculate('add');
+        });
+    </script>
+</body>
+</html>
